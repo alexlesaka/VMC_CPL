@@ -253,8 +253,7 @@ lemma extValSum_Lemma<T>(f:Valuation<T>, W:seq<Name>, W':seq<Name>, V:seq<T>, V'
 
 // The predicate models decides if the (B,f) is a model of phi (in symbols, B,f |= phi)
 
-predicate models<T>(B:Structure<T>, f:Valuation<T>, phi:Formula)  
-
+predicate method models<T>(B:Structure<T>, f:Valuation<T>, phi:Formula)  
 	requires wfStructure(B) && wfFormula(B.Sig, phi) && f.Values <= B.Dom
 	decreases phi
 {
@@ -351,6 +350,7 @@ lemma NoFreeVarInForall_Lemma<T>(B:Structure, f:Valuation<T>, x:Name, beta:Formu
 { 
 forall a  | a in B.Dom { NoFreeVar_Lemma(B, f, x, a, beta); }
 }
+
 
 lemma NoFreeVarInExists_Lemma<T>(B:Structure, f:Valuation<T>, x:Name, beta:Formula)
   requires wfStructure(B) && wfFormula(B.Sig,beta) && f.Values <= B.Dom

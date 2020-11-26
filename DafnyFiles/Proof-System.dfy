@@ -93,7 +93,7 @@ if alpha == phi {
 }
 
 lemma indexSubformula_Lemma (s:Index, phi:Formula, Sig:Signature)
-	requires s in setOfIndex(phi) && !FoI(s,phi,Sig).Atom?
+	requires s in setOfIndex(phi) 
 	ensures FoI(s,phi,Sig).And?  ==> s+[0] in setOfIndex(phi) && FoI(s,phi,Sig).0 == FoI(s+[0],phi,Sig) 
 									&& s+[1] in setOfIndex(phi) && FoI(s,phi,Sig).1 == FoI(s+[1],phi,Sig)
 	ensures FoI(s,phi,Sig).Forall? ==> s+[0] in setOfIndex(phi) && FoI(s,phi,Sig).Body == FoI(s+[0],phi,Sig) 
@@ -155,7 +155,7 @@ datatype Judgement<T(==)> = J(i:Index,V:set<Name>,F:set<Valuation<T>>)
 predicate wfJudgement<T> (j:Judgement<T>,phi:Formula,B:Structure<T>)
 // j is a well-formed judgement on a well-formed QCSP instance (phi,B)
 {
-wfQCSP_Instance(phi,B)            
+wfQCSP_Instance(phi,B)		
 &&
 j.i in setOfIndex(phi)
 && 
@@ -165,7 +165,6 @@ j.V <= freeVar(FoI(j.i,phi,B.Sig))
 &&
 (forall f, v :: f in j.F ==> v in f.Values ==> v in B.Dom)
 }
-
 
 predicate is_projection<T> (j1:Judgement<T>, j2:Judgement<T>, phi:Formula,
                             B:Structure<T>)
@@ -248,7 +247,7 @@ phii.Forall?
 ) 
 ||
 ( // by rule (upward flow)
-!phii.Atom? && exists j' :: wfJudgement(j',phi,B)  
+exists j' :: wfJudgement(j',phi,B)  
 			               && is_upwardFlow(j,j',phi,B)
 			               && is_derivable(j',phi,B) 
 ) 

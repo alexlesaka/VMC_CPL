@@ -15,11 +15,10 @@ h in allMaps(j.V, B.Dom)
 }
 
 lemma projection_Lemma<T>(j:Judgement<T>, j':Judgement<T>, phi:Formula, B:Structure<T>) 
-	requires wfStructure(B) && wfFormula(B.Sig,phi) && wfJudgement(j,phi,B) && wfJudgement(j',phi,B)
-	requires is_projection(j,j',phi,B) 
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j'.i,phi,B.Sig))-j'.V,FoI(j'.i,phi,B.Sig))) 
-	requires forall h :: valuationModel(h,j',phi,B)  ==> h in j'.F
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
+	requires wfStructure(B) && wfFormula(B.Sig,phi) 
+	requires wfJudgement(j,phi,B) && wfJudgement(j',phi,B)
+	requires is_projection(j,j',phi,B) //(H1)
+	requires forall h :: valuationModel(h,j',phi,B)  ==> h in j'.F //(H2)
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);
@@ -29,41 +28,36 @@ var X := freeVar(phii)-j.V;
 forall h:Valuation<T> | valuationModel(h,j,phi,B) 
 	ensures h in j.F;
 	{ 
-	assert  models(B,h,existSq(X,phii));
+	//assert  models(B,h,existSq(X,phii));
 	assert X == Y+W;
-	assert models(B,h,existSq(Y+W,phii)); 
+	//assert models(B,h,existSq(Y+W,phii)); 
 	existSq_Sum_Lemma(B, h, Y, W, phii); 						
 	assert models(B,h,existSq(Y,existSq(W,phii))); 
-	assert models(B,h,existSq(Y,existSq(W,phii)));
 	existSqSem_Lemma(B, h, Y, existSq(W,phii));  
 	var U, Z :| setOf(Z) <= B.Dom && |U| == |Z| == |Y| && setOf(U) == Y
 							&& noDups(U) && setOf(U) !! h.Keys
 							&& extVal(h,U,Z).Values <= B.Dom
 							&& models(B,extVal(h,U,Z),existSq(W,phii));
 	extValDomRange_Lemma(h, U, Z); 
-	assert extVal(h,U,Z).Keys == h.Keys + setOf(U);
-	assert j.V + (j'.V-j.V) == j'.V;
 	assert extVal(h,U,Z).Keys == j'.V;
 	extValallMaps_Lemma(h, U, Z, B);
 	assert extVal(h,U,Z) in allMaps(j'.V, B.Dom);
-	assert extVal(h,U,Z) in j'.F;
-	assert h.Keys == j.V;
+	assert valuationModel(extVal(h,U,Z),j',phi,B);
+	//assert extVal(h,U,Z) in j'.F; //by hypothesis (H2)
+	//assert h.Keys == j.V;
 	projectOfExtVal_Lemma(h, U, Z); 					  
 	assert projectVal(extVal(h,U,Z),j.V) == h;  
-	assert j.F == ( set f | f in j'.F :: projectVal(f,j.V) );
-	assert h in j.F;
+	//assert j.F == ( set f | f in j'.F :: projectVal(f,j.V) ); //by hypothesis (H1)
+	//assert h in j.F;
 	} 
 }
 
 lemma join_Lemma<T> (j:Judgement<T>, j1:Judgement<T>, j2:Judgement<T>, phi:Formula, B:Structure<T>) 
 	requires wfStructure(B) && wfFormula(B.Sig,phi) 
 	requires wfJudgement(j,phi,B) && wfJudgement(j1,phi,B) && wfJudgement(j2,phi,B) && j1.i == j2.i
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j1.i,phi,B.Sig))-j1.V,FoI(j1.i,phi,B.Sig))) 
 	requires forall h :: valuationModel(h,j1,phi,B) ==> h in j1.F
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j1.i,phi,B.Sig))-j2.V,FoI(j2.i,phi,B.Sig)))
 	requires forall h :: valuationModel(h,j2,phi,B) ==> h in j2.F
 	requires is_join(j,j1,j2,phi,B) 
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);
@@ -94,10 +88,8 @@ lemma dualProjection_Lemma<T> (j:Judgement<T>,j':Judgement<T>,phi:Formula,B:Stru
 	requires FoI(j.i,phi,B.Sig).Forall? && FoI(j.i,phi,B.Sig).x in j'.V
 	         && FoI(j.i,phi,B.Sig) == Forall(FoI(j.i,phi,B.Sig).x,FoI(j'.i,phi,B.Sig)) 
 			 && j'.i == j.i+[0]  && j.V == j'.V -{FoI(j.i,phi,B.Sig).x}  
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j'.i,phi,B.Sig))-j'.V,FoI(j'.i,phi,B.Sig))) 
 	requires forall h :: valuationModel(h,j',phi,B) ==> h in j'.F
 	requires is_dualProjection(j, FoI(j.i,phi,B.Sig).x, j', phi, B) 
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);   
@@ -139,11 +131,9 @@ assert forall h:Valuation<T> :: valuationModel(h,j,phi,B) ==> h in j.F;
 lemma upArrowExists_Lemma<T> (j:Judgement<T>,j':Judgement<T>,phi:Formula,B:Structure<T>) 
 	requires wfStructure(B) && wfFormula(B.Sig,phi) 
 	requires wfJudgement(j,phi,B) && wfJudgement(j',phi,B) 
-	requires j.V == j'.V && j.F ==j'.F && j'.i == j.i +[0]
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j'.i,phi,B.Sig))-j'.V,FoI(j'.i,phi,B.Sig))) 
+	requires j.V == j'.V && j.F ==j'.F && j'.i == j.i +[0] 
 	requires FoI(j.i,phi,B.Sig).Exists? && FoI(j.i,phi,B.Sig) == Exists(FoI(j.i,phi,B.Sig).x, FoI(j'.i,phi,B.Sig));
 	requires forall h :: valuationModel(h,j',phi,B) ==> h in j'.F
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);
@@ -183,10 +173,8 @@ lemma upArrowForall_Lemma<T> (j:Judgement<T>,j':Judgement<T>,phi:Formula,B:Struc
 	requires wfStructure(B) && wfFormula(B.Sig,phi) 
 	requires wfJudgement(j,phi,B) && wfJudgement(j',phi,B) 
 	requires j.V == j'.V && j.F ==j'.F && j'.i == j.i +[0]
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j'.i,phi,B.Sig))-j'.V,FoI(j'.i,phi,B.Sig))) 
 	requires FoI(j.i,phi,B.Sig).Forall? && FoI(j.i,phi,B.Sig) == Forall(FoI(j.i,phi,B.Sig).x, FoI(j'.i,phi,B.Sig));
-	requires forall h :: valuationModel(h,j',phi,B) ==> h in j'.F
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
+	requires forall h :: valuationModel(h,j',phi,B) ==> h in j'.F 
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);
@@ -199,7 +187,6 @@ if x in freeVar(subphi) {
 			        { existSq_Forall_Lemma(B, h, x, freeVar(Forall(x,subphi))-j'.V, subphi); }
 				h.Keys == j'.V && h.Values <= B.Dom && models(B,h,existSq(freeVar(Exists(x,subphi))-j'.V,Exists(x,subphi)));
 			    models(B,h,existSq(freeVar(phii)-j.V,Exists(x,subphi)));
-                   // {wff_existSq_Lemma(B.Sig,{x},subphi);}
 				models(B,h,existSq(freeVar(phii)-j.V,existSq({x}, subphi)));
                     {existSq_Sum_Lemma (B, h, freeVar(phii)-j.V, {x}, subphi);}
 				models(B,h,existSq(freeVar(phii)-j.V+{x},subphi));
@@ -232,10 +219,8 @@ lemma upArrowAnd_Lemma<T> (j:Judgement<T>,j':Judgement<T>,phi:Formula,B:Structur
 	requires wfStructure(B) && wfFormula(B.Sig,phi) && wfFormula(B.Sig, FoI(j'.i,phi,B.Sig))
 	requires wfJudgement(j,phi,B) && wfJudgement(j',phi,B)
 	requires j.V == j'.V && j.F ==j'.F && (j'.i == (j.i +[0]) || j'.i==(j.i+[1]))
-	requires wfFormula(B.Sig,existSq(freeVar(FoI(j'.i,phi,B.Sig))-j'.V,FoI(j'.i,phi,B.Sig))) ;
 	requires FoI(j.i,phi,B.Sig).And? && (FoI(j'.i,phi,B.Sig) == FoI(j.i,phi,B.Sig).0 || FoI(j'.i,phi,B.Sig) == FoI(j.i,phi,B.Sig).1); 
 	requires forall h :: valuationModel(h,j',phi,B) ==> h in j'.F
-	ensures wfFormula(B.Sig,existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V,FoI(j.i,phi,B.Sig))) 
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i,phi,B.Sig);
@@ -248,10 +233,6 @@ forall h | valuationModel(h,j,phi,B) ensures h in j.F
 	       && models(B,h,existSq(W,phii));
 	assert freeVar(existSq(W,phii)) <= j.V == h.Keys;
     existSq_Distr_And_Lemma(B, h, W, phii);
-	/* assert wfFormula(B.Sig,existSq(W*freeVar(phii.0),phii.0))
-			&& wfFormula(B.Sig,existSq(W*freeVar(phii.1),phii.1))
-			&& models(B,h,existSq(W*freeVar(phii.0),phii.0))
-			&& models(B,h,existSq(W*freeVar(phii.1),phii.1));*/ 
 	var W0 := W*freeVar(phii.0);
 	// assert W0 == freeVar(phii.0)-j'.V;
 	var W1 := W*freeVar(phii.1);
@@ -271,7 +252,6 @@ forall h | valuationModel(h,j,phi,B) ensures h in j.F
 inductive lemma models_Lemma<T> (j:Judgement<T>, phi:Formula, B:Structure<T>) 
 	requires wfQCSP_Instance(phi, B) && wfJudgement(j, phi, B) 
 	requires is_derivable(j,phi,B)				
-	//ensures wfFormula(B.Sig, existSq(freeVar(FoI(j.i,phi,B.Sig))-j.V, FoI(j.i,phi,B.Sig)))  //ATENCION
 	ensures forall h :: valuationModel(h,j,phi,B) ==> h in j.F
 {
 var phii := FoI(j.i, phi,B.Sig);

@@ -136,9 +136,9 @@ if |X| > 0 {
 	 } else { 
 	    assert f[z:=V[i]] == extVal(f,[z],[V[i]]);
 		existSq_ExtVal_Lemma(B, f, [z],[V[i]],{z},existSq(X-{z},alpha));
-		// assert models(B,f,Exists(z,existSq(X-{z},alpha)));
+		assert models(B,f,Exists(z,existSq(X-{z},alpha)));
 	    existSq_Lemma(B, f, z, X, alpha);
-		// assert models(B,f,existSq(X,alpha));
+		assert models(B,f,existSq(X,alpha));
 	  }
 }
 }
@@ -146,9 +146,7 @@ if |X| > 0 {
 lemma ExistsProject_Lemma<T>(B:Structure<T>, f:Valuation<T>, U:set<Name>, alpha:Formula)
 	requires wfStructure(B) && wfFormula(B.Sig, alpha) && f.Values <= B.Dom
 	requires U <= f.Keys 
-	requires wfFormula(B.Sig,existSq(freeVar(alpha)-f.Keys, alpha))
 	requires models(B,f,existSq(freeVar(alpha)-f.Keys, alpha))
-	ensures wfFormula(B.Sig,existSq(freeVar(alpha)-U,alpha))
 	ensures models(B,projectVal(f,U),existSq(freeVar(alpha)-U,alpha))
 	decreases f.Keys-U
 {
@@ -178,8 +176,6 @@ lemma existSq_Distr_And_Lemma<T>(B:Structure<T>, f:Valuation<T>, W:set<Name>, ph
 	requires wfStructure(B) && wfFormula(B.Sig,phi) && f.Values <= B.Dom 
 	requires phi.And?
 	requires models(B,f, existSq(W,phi))  
-	ensures wfFormula(B.Sig,existSq(W*freeVar(phi.0),phi.0))
-	ensures wfFormula(B.Sig,existSq(W*freeVar(phi.1),phi.1))
 	ensures models(B, f, existSq(W*freeVar(phi.0), phi.0))
 	ensures models(B, f, existSq(W*freeVar(phi.1), phi.1)) 
 	decreases W
@@ -261,7 +257,6 @@ lemma WeakerexistSq_Lemma<T>(B:Structure<T>, h:Valuation<T>, W:set<Name>,
 	requires wfStructure(B) && wfFormula(B.Sig,phi) && wfFormula(B.Sig,psi) && h.Values <= B.Dom
 	requires forall f:Valuation<T> :: f.Values <= B.Dom && models(B,f,phi) ==> models(B,f,psi)
 	requires models(B,h,existSq(W,phi)) && W !! h.Keys
-	ensures  wfFormula(B.Sig,existSq(W,psi))
 	ensures  models(B,h,existSq(W,psi))
 {
 existSqSem_Lemma(B, h, W, phi);
@@ -277,7 +272,6 @@ existSq_ExtVal_Lemma(B, h, W', V, W, psi);
 lemma existSq_Forall_Lemma<T>(B:Structure<T>, h:Valuation<T>, x:Name, W:set<Name>, phi:Formula)
 	requires wfStructure(B) && wfFormula(B.Sig,Forall(x,phi)) && h.Values <= B.Dom 
 	requires models(B,h,existSq(W,Forall(x,phi))) && W !! h.Keys
-	ensures  wfFormula(B.Sig,existSq(W,Exists(x,phi)))
 	ensures  models(B,h,existSq(W,Exists(x,phi)))		
 {
 WeakerexistSq_Lemma(B, h, W, Forall(x,phi), Exists(x,phi));
@@ -323,9 +317,7 @@ if X != {}
 lemma existSq_Sum_Intro_Lemma<T>(B:Structure<T>, f:Valuation<T>, X:set<Name>, Y:set<Name>, alpha:Formula)
 	requires wfStructure(B) && wfFormula(B.Sig, alpha) && f.Values <= B.Dom
 	requires X !! Y 
-	requires wfFormula(B.Sig, existSq(X, existSq(Y, alpha))) 
 	requires models(B, f, existSq(X, existSq(Y, alpha))) 
-	ensures wfFormula(B.Sig, existSq(X+Y, alpha))
 	ensures models(B, f, existSq(X+Y, alpha))
 	decreases X
 {
@@ -347,9 +339,7 @@ if |X| > 0 {
 lemma existSq_Sum_Unfold_Lemma<T>(B:Structure<T>, f:Valuation<T>, X:set<Name>, Y:set<Name>, alpha:Formula)
 	requires wfStructure(B) && wfFormula(B.Sig, alpha) && f.Values <= B.Dom
 	requires X !! Y  && (X+Y) !! f.Keys
-	requires wfFormula(B.Sig, existSq(X+Y, alpha))
 	requires models(B, f, existSq(X+Y, alpha))
-	ensures wfFormula(B.Sig, existSq(X, existSq(Y, alpha))) 
 	ensures models(B, f, existSq(X, existSq(Y, alpha))) 
 	decreases X+Y
 {
@@ -383,8 +373,6 @@ if |X+Y| > 0 {
 lemma existSq_Sum_Lemma<T>(B:Structure<T>, f:Valuation<T>, X:set<Name>, Y:set<Name>, alpha:Formula)
 	requires wfStructure(B) && wfFormula(B.Sig, alpha) && f.Values <= B.Dom
 	requires X !! Y  && (X+Y) !! f.Keys
-	ensures wfFormula(B.Sig, existSq(X, existSq(Y, alpha))) 
-	        && wfFormula(B.Sig, existSq(X+Y, alpha))
 	ensures models(B, f, existSq(X, existSq(Y, alpha))) 
 	        <==> models(B, f, existSq(X+Y, alpha))
 	decreases X

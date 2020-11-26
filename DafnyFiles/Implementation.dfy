@@ -231,43 +231,4 @@ match phii {
           }
 }
 
-predicate method compute_wfStructure<T>(B:Structure<T>)
-{
-  B.Dom != {} 
-  && forall r :: r in B.Sig.Keys ==> ( r in B.I && forall t :: t in B.I[r] ==> |t| == B.Sig[r])
-}
-
-predicate method compute_wfFormula(S:Signature, phi:Formula)
-ensures compute_wfFormula(S, phi) == wfFormula(S, phi)
-{
-match phi
-       case Atom(R, par) => R in S.Keys && |par| == S[R]
-       case And(phi0, phi1) => compute_wfFormula(S, phi0) && compute_wfFormula(S, phi1)
-       case Forall(x, alpha) => compute_wfFormula(S,alpha)
-       case Exists(x, alpha) => compute_wfFormula(S,alpha) 
-}
-
-function method compute_setOf<T>(s:seq<T>): set<T> 
-{
-set x | x in s
-}
-
-function method compute_freeVar(phi:Formula): set<Name>
-{
-match phi
-             case Atom(R, par) => compute_setOf(par)
-             case And(ph1, phi1) => compute_freeVar(ph1) + compute_freeVar(phi1)
-             case Forall(x, phi) => compute_freeVar(phi) - {x}                         
-             case Exists(x, phi) => compute_freeVar(phi) - {x}
-}
-
-predicate method compute_sentence(phi:Formula)
-{
-compute_freeVar(phi) == {}
-}
-
-predicate method compute_wfQCSP_Instance(phi:Formula, B:Structure)
-{
-compute_wfStructure(B) && compute_wfFormula(B.Sig,phi) && compute_sentence(phi)
-}
 }

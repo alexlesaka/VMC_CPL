@@ -43,6 +43,8 @@ J(j.i[..|j.i|-1], j.V-{v}, (set f:Valuation<T> | f in allMaps(j.V-{v},B.Dom)
                                                  && forall b :: b in B.Dom ==> f[v:=b] in j.F))
 }
 
+// Definition of canonical judgement
+
 function canonical_judgement<T> (i:seq<int>,phi:Formula,B:Structure<T>):Judgement<T>
 	requires wfQCSP_Instance(phi,B)
 	requires i in setOfIndex(phi)
@@ -52,21 +54,19 @@ function canonical_judgement<T> (i:seq<int>,phi:Formula,B:Structure<T>):Judgemen
 	decreases FoI(i,phi,B.Sig)
 {
 var phii := FoI(i,phi,B.Sig); 
+indexSubformula_Lemma(i,phi,B.Sig);
 match phii
 	case Atom(R,par) => var F := (set f:Valuation<T> | f in allMaps(setOf(par),B.Dom)	
 								                        &&  HOmap(f,par) in B.I[R]);
 						J(i, setOf(par), F)
-	case And(phi0,phi1) =>	indexSubformula_Lemma(i,phi,B.Sig);
-	                        var j0' := canonical_judgement(i+[0], phi, B);
+	case And(phi0,phi1) =>	var j0' := canonical_judgement(i+[0], phi, B);
 							var j1' := canonical_judgement(i+[1], phi, B);
 		 					var j0 := J(i, j0'.V, j0'.F);
 							var j1 := J(i, j1'.V, j1'.F);
 							join(j0, j1, phi, B)
-	case Forall(x,phik) =>  indexSubformula_Lemma(i,phi,B.Sig);
-	                        var j0 := canonical_judgement(i+[0],phi,B);								   
+	case Forall(x,phik) =>  var j0 := canonical_judgement(i+[0],phi,B);								   
 							if x in j0.V then dualProjection(x,j0,phi,B) else J(i,j0.V,j0.F)
-	case Exists(x,phik) => indexSubformula_Lemma(i,phi,B.Sig);
-	                       var j0:= canonical_judgement (i+[0],phi,B);
+	case Exists(x,phik) => var j0:= canonical_judgement (i+[0],phi,B);
 						   var jp := projection(j0,j0.V-{x},phi,B);
 						   if x in j0.V then  J(i, jp.V, jp.F) else J(i,j0.V,j0.F)
 }
@@ -77,6 +77,8 @@ function setOfValmodels<T> (phi:Formula, B:Structure<T>):set<Valuation<T>>
 {
 (set f:Valuation<T> | f in allMaps(freeVar(phi), B.Dom) && models(B,f,phi))
 }
+
+//Auxiliary Lemmas to prove canonical_judgement_Lemma
 
 lemma setofValmodelsAnd_Lemma<T>(phi0:Formula, phi1:Formula, B:Structure<T>)
     requires wfStructure(B) && wfFormula(B.Sig, phi0) && wfFormula(B.Sig, phi1)
@@ -189,6 +191,7 @@ forall f:Valuation<T> | f in F
 //assert forall f:Valuation<T> ::  f in F ==> f in setOfValmodels(Exists(x,beta),B);
 }
 
+// The canonical judgement is derivable
 lemma canonical_judgement_Lemma<T>(i:seq<int>, phi:Formula, B:Structure<T>)
 	requires wfQCSP_Instance(phi,B)
 	requires i in setOfIndex(phi)
@@ -199,7 +202,7 @@ lemma canonical_judgement_Lemma<T>(i:seq<int>, phi:Formula, B:Structure<T>)
 	decreases FoI(i,phi,B.Sig)
 {
 var phii := FoI(i,phi,B.Sig);
-if !phii.Atom? { indexSubformula_Lemma(i,phi,B.Sig);}
+indexSubformula_Lemma(i,phi,B.Sig);
 var cj := canonical_judgement(i,phi,B);
 match phii																					 
   case Atom(R,par) => //assert is_derivable(cj,phi,B);
@@ -250,19 +253,18 @@ case Exists(x,beta)
 		}  
 }
 
+//Completeness
+
 lemma completeness_Theorem<T> (phi:Formula,B:Structure<T>)
   requires wfQCSP_Instance(phi,B)
   requires !models(B,map[],phi) 
   ensures is_derivable(J([],{},{}),phi,B) 
 {
-if !is_derivable(J([],{},{}),phi,B)
-	{
-	var cj :| cj == canonical_judgement([],phi,B);
-	canonical_judgement_Lemma([], phi, B);
-	//assert cj.F == (set f:Valuation<T> | f in allMaps({}, B.Dom) 
-	//                                     && models(B,f,phi)) != {};
-	//assert cj.F == {map[]};
-	//assert models(B,map[],phi);
-    }
+var cj := canonical_judgement([],phi,B);
+canonical_judgement_Lemma([], phi, B);
+//assert cj.V == {};
+//assert cj.F == (set f:Valuation<T> | f in allMaps({}, B.Dom) 
+//	                                  && models(B,f,phi)) == {};
 }
+
 } 
